@@ -194,6 +194,15 @@ NSString *JVChatViewPboardType = @"Colloquy Chat View v1.0 pasteboard type";
 	return [_settings objectForKey:key];
 }
 
+- (void) _persistViewOrder {
+	NSMutableArray *order = [NSMutableArray arrayWithCapacity:[_views count]];
+	for( id <JVChatViewController> controller in _views ) {
+		NSString *identifier = [controller identifier];
+		if( [identifier length] ) [order addObject:identifier];
+	}
+	[self setPreference:order forKey:@"ChatViewOrder"];
+}
+
 #pragma mark -
 
 - (void) showWindow:(id) sender {
@@ -371,6 +380,20 @@ NSString *JVChatViewPboardType = @"Colloquy Chat View v1.0 pasteboard type";
 		[sortedViews addObject:controller];
 		[sortedViews sortUsingDescriptors:sortDescriptors];
 		i = [sortedViews indexOfObject:controller];
+	} else {
+		NSArray *savedOrder = [self preferenceForKey:@"ChatViewOrder"];
+		NSString *newIdentifier = [controller identifier];
+		if( [savedOrder isKindOfClass:[NSArray class]] && [newIdentifier length] ) {
+			NSUInteger newPos = [savedOrder indexOfObject:newIdentifier];
+			if( newPos != NSNotFound ) {
+				NSUInteger insertIndex = 0;
+				for( id <JVChatViewController> existing in _views ) {
+					NSUInteger existingPos = [savedOrder indexOfObject:[existing identifier]];
+					if( existingPos != NSNotFound && existingPos < newPos ) insertIndex++;
+				}
+				i = insertIndex;
+			}
+		}
 	}
 
 	[self insertChatViewController:controller atIndex:i];
@@ -942,6 +965,8 @@ NSString *JVChatViewPboardType = @"Colloquy Chat View v1.0 pasteboard type";
 		if( index == NSOutlineViewDropOnItemIndex )
 			[[dragedController windowController] addChatViewController:dragedController];
 		else [self insertChatViewController:dragedController atIndex:index];
+
+		[self _persistViewOrder];
 
 		return YES;
 	}

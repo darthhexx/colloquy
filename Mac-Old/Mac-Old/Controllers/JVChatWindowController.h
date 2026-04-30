@@ -86,6 +86,7 @@ extern NSString *JVChatViewPboardType;
 - (void) _refreshWindowTitle;
 - (void) _refreshList;
 - (void) _refreshPreferences;
+- (void) _persistViewOrder;
 - (void) _saveWindowFrame;
 - (void) _switchViews:(id) sender;
 - (void) _favoritesListDidUpdate:(NSNotification *) notification;
